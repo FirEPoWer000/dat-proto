@@ -122,6 +122,11 @@
   .claim-hist a{color:var(--text-dim);font-size:12px;text-decoration:none}
 
   .hint{text-align:center;color:var(--text-faint);font-size:12px;margin-top:8px}
+
+  /* 质押页 Tab */
+  .stake-tabs{display:flex;gap:8px;background:var(--bg-input);border-radius:11px;padding:5px;margin-bottom:20px}
+  .stab{flex:1;background:transparent;border:none;color:var(--text-dim);padding:11px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;transition:.15s}
+  .stab.active{background:var(--bg-elev);color:var(--text)}
 </style>
 </head>
 <body>
@@ -131,11 +136,11 @@
   <div class="topbar-left">
     <div class="logo"><span class="logo-mark">D</span> DAT</div>
     <nav class="nav">
-      <a href="#" class="active">购买</a>
+      <a href="#" class="active" id="navBuy" onclick="go('buy')">购买</a>
     </nav>
   </div>
   <div class="topbar-right">
-    <button class="btn-stake">质押</button>
+    <button class="btn-stake" onclick="go('stake')">质押</button>
     <div class="icon-btn" onclick="toggleClaim()">🔔<span class="bell-dot"></span></div>
     <div class="wallet-wrap">
       <div class="wallet" onclick="toggleWallet()"><span class="dot"></span> 0x4d…c06b ▾</div>
@@ -155,8 +160,8 @@
   </div>
 </div>
 
-<!-- 主体 -->
-<div class="main">
+<!-- ============ 购买页 ============ -->
+<div class="main page" id="page-buy">
   <div class="page-head">
     <h1>购买 DAT</h1>
     <p>存入 USDC，按 1:1 即时获得 DAT，质押可赚取 USDC 收益</p>
@@ -223,11 +228,61 @@
     <div class="stat-row"><span class="k">已质押</span><span class="v">500 DAT</span></div>
     <div class="stat-row"><span class="k">累计收益</span><span class="v">42.50 USDC</span></div>
     <div class="bal-actions">
-      <button class="btn-ghost stake">质押</button>
+      <button class="btn-ghost stake" onclick="go('stake')">质押</button>
       <button class="btn-ghost">赎回</button>
     </div>
     <div class="hint" style="text-align:left;margin-top:14px">💡 质押收益可在右上角 🔔 领取</div>
   </div>
+
+  </div>
+</div>
+
+<!-- ============ 质押页 ============ -->
+<div class="main page" id="page-stake" style="display:none">
+  <div class="page-head">
+    <h1>质押 DAT</h1>
+    <p>质押 DAT 赚取 USDC 收益，随时可解押、随时可领取</p>
+  </div>
+  <div class="grid">
+
+    <!-- 质押操作卡 -->
+    <div class="card">
+      <div class="stake-tabs">
+        <button class="stab active" id="tabStake" onclick="stakeTab('stake')">质押</button>
+        <button class="stab" id="tabUnstake" onclick="stakeTab('unstake')">解押</button>
+      </div>
+
+      <div class="label" id="stakeAvailLbl">可质押 734 DAT</div>
+      <div class="input-wrap" id="stakeWrap">
+        <div class="token-chip"><span class="ticon" style="background:#3b82f6">◆</span> DAT</div>
+        <input class="input-amt" id="stakeInput" placeholder="0" oninput="onStake()" />
+        <button class="btn-max" onclick="stakeMax()">MAX</button>
+      </div>
+      <div class="err-msg" id="stakeErr"></div>
+
+      <div class="overview" id="stakeOv" style="display:none">
+        <div class="ov-caption">收益预估</div>
+        <div class="ov-row"><span class="k">当前 APY</span><span class="v apy" style="color:var(--success)">3.60%</span></div>
+        <div class="ov-row"><span class="k">预计日收益</span><span class="v hl" id="stakeDaily">0 USDC</span></div>
+        <div class="ov-row"><span class="k">预计年收益</span><span class="v" id="stakeYearly">0 USDC</span></div>
+      </div>
+
+      <button class="btn-primary" id="stakeBtn" disabled>请输入数量</button>
+    </div>
+
+    <!-- 我的质押概览卡 -->
+    <div class="card">
+      <div class="card-title">我的质押</div>
+      <div class="bal-top">
+        <span class="bal-amt" id="stakedAmt">500.00</span><span class="bal-usd">DAT 已质押</span>
+      </div>
+      <div class="bal-divider"></div>
+      <div class="stat-row"><span class="k">当前年化 APY</span><span class="v apy">3.60%</span></div>
+      <div class="stat-row"><span class="k">累计收益</span><span class="v">42.50 USDC</span></div>
+      <div class="stat-row"><span class="k">待领取收益</span><span class="v" style="color:var(--success);font-weight:700">12.30 USDC</span></div>
+      <button class="btn-primary" style="margin-top:18px;background:var(--success)" onclick="toggleClaim()">领取收益 12.30 USDC</button>
+      <div class="hint" style="text-align:left;margin-top:14px">💡 解押即时到账，无锁定期</div>
+    </div>
 
   </div>
 </div>
@@ -247,6 +302,71 @@
   // 模拟数据
   var QUOTA = 20;      // 今日可购 DAT
   var BALANCE = 850;   // 钱包 USDC 余额
+  var UNSTAKED = 734;  // 可质押 DAT（未质押余额）
+  var STAKED = 500;    // 已质押 DAT
+  var APY = 0.036;     // 年化
+  var stakeMode = 'stake';
+
+  // ===== 页面切换 =====
+  function go(page){
+    document.querySelectorAll('.page').forEach(function(p){p.style.display='none'});
+    document.getElementById('page-'+page).style.display='block';
+    document.getElementById('navBuy').classList.toggle('active', page==='buy');
+    // 关闭浮层
+    document.getElementById('walletMenu').classList.remove('open');
+    document.getElementById('claimPop').style.display='none';
+    window.scrollTo(0,0);
+  }
+
+  // ===== 质押交互 =====
+  function stakeTab(mode){
+    stakeMode=mode;
+    document.getElementById('tabStake').classList.toggle('active', mode==='stake');
+    document.getElementById('tabUnstake').classList.toggle('active', mode==='unstake');
+    document.getElementById('stakeAvailLbl').textContent =
+      mode==='stake' ? ('可质押 '+UNSTAKED+' DAT') : ('已质押 '+STAKED+' DAT');
+    document.getElementById('stakeInput').value='';
+    onStake();
+  }
+  function onStake(){
+    var input=document.getElementById('stakeInput');
+    var wrap=document.getElementById('stakeWrap');
+    var err=document.getElementById('stakeErr');
+    var ov=document.getElementById('stakeOv');
+    var btn=document.getElementById('stakeBtn');
+    var max = stakeMode==='stake'?UNSTAKED:STAKED;
+    var v=parseFloat(input.value);
+
+    if(!input.value || isNaN(v) || v<=0){
+      wrap.classList.remove('error'); err.classList.remove('show');
+      ov.style.display='none';
+      btn.disabled=true; btn.textContent='请输入数量';
+      return;
+    }
+    if(v>max){
+      wrap.classList.add('error');
+      err.textContent = stakeMode==='stake'
+        ? ('超过可质押数量（最多 '+UNSTAKED+' DAT）')
+        : ('超过已质押数量（最多 '+STAKED+' DAT）');
+      err.classList.add('show');
+      ov.style.display='none';
+      btn.disabled=true; btn.textContent=(stakeMode==='stake'?'质押':'解押')+'数量超限';
+      return;
+    }
+    wrap.classList.remove('error'); err.classList.remove('show');
+    if(stakeMode==='stake'){
+      ov.style.display='flex';
+      document.getElementById('stakeDaily').textContent='~'+(v*APY/365).toFixed(2)+' USDC';
+      document.getElementById('stakeYearly').textContent='~'+(v*APY).toFixed(2)+' USDC';
+    }else{
+      ov.style.display='none';
+    }
+    btn.disabled=false; btn.textContent=(stakeMode==='stake'?'确认质押':'确认解押');
+  }
+  function stakeMax(){
+    document.getElementById('stakeInput').value = stakeMode==='stake'?UNSTAKED:STAKED;
+    onStake();
+  }
 
   function onAmt(){
     var input=document.getElementById('amtInput');
