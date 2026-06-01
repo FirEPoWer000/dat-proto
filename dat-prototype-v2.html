@@ -127,6 +127,15 @@
   .stake-tabs{display:flex;gap:8px;background:var(--bg-input);border-radius:11px;padding:5px;margin-bottom:20px}
   .stab{flex:1;background:transparent;border:none;color:var(--text-dim);padding:11px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;transition:.15s}
   .stab.active{background:var(--bg-elev);color:var(--text)}
+
+  /* 说明卡 */
+  .info-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .info-row:last-child{border-bottom:none}
+  .info-ic{width:24px;height:24px;border-radius:50%;background:var(--bg-elev);color:#7cb3f5;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .info-row b{font-size:13.5px;display:block;margin-bottom:3px}
+  .info-row p{font-size:12.5px;color:var(--text-dim);line-height:1.55}
+  .info-row.warn{background:rgba(245,158,11,.08);margin:0 -10px;padding:12px 10px;border-radius:8px;border-bottom:none}
+  .info-row.warn .info-ic{background:rgba(245,158,11,.15)}
 </style>
 </head>
 <body>
@@ -149,8 +158,8 @@
           <div class="addr">0x4d2f…c06b</div>
           <div class="net"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block"></span> Ethereum Mainnet</div>
         </div>
-        <div class="wm-item"><span class="ic">⇄</span> Transfer 转账</div>
-        <div class="wm-item"><span class="ic">↗</span> 提现 Withdraw</div>
+        <div class="wm-item" onclick="go('transfer')"><span class="ic">⇄</span> Transfer 转账</div>
+        <div class="wm-item" onclick="go('withdraw')"><span class="ic">↗</span> 提现 Withdraw</div>
         <div class="wm-sep"></div>
         <div class="wm-item"><span class="ic">⧉</span> 复制地址</div>
         <div class="wm-item danger"><span class="ic">⏏</span> 断开连接</div>
@@ -229,7 +238,7 @@
     <div class="stat-row"><span class="k">累计收益</span><span class="v">42.50 USDC</span></div>
     <div class="bal-actions">
       <button class="btn-ghost stake" onclick="go('stake')">质押</button>
-      <button class="btn-ghost">赎回</button>
+      <button class="btn-ghost" onclick="go('redeem')">赎回</button>
     </div>
     <div class="hint" style="text-align:left;margin-top:14px">💡 质押收益可在右上角 🔔 领取</div>
   </div>
@@ -282,6 +291,140 @@
       <div class="stat-row"><span class="k">待领取收益</span><span class="v" style="color:var(--success);font-weight:700">12.30 USDC</span></div>
       <button class="btn-primary" style="margin-top:18px;background:var(--success)" onclick="toggleClaim()">领取收益 12.30 USDC</button>
       <div class="hint" style="text-align:left;margin-top:14px">💡 解押即时到账，无锁定期</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 赎回页 ============ -->
+<div class="main page" id="page-redeem" style="display:none">
+  <div class="page-head">
+    <h1>赎回 DAT</h1>
+    <p>将 DAT 按 1:1 赎回为 USDC，赎回后可继续使用或提现至外部钱包</p>
+  </div>
+  <div class="grid">
+
+    <!-- 赎回操作卡 -->
+    <div class="card">
+      <div class="card-title">赎回</div>
+
+      <div class="hold-strip">
+        <div class="hold-item"><span class="hk">可赎回</span><span class="hv">734.00 DAT</span></div>
+        <div class="hold-item"><span class="hk">USDC 余额</span><span class="hv">1,234.00 USDC</span></div>
+      </div>
+
+      <div class="label">赎回数量</div>
+      <div class="input-wrap" id="redeemWrap">
+        <div class="token-chip"><span class="ticon" style="background:#3b82f6">◆</span> DAT</div>
+        <input class="input-amt" id="redeemInput" placeholder="0" oninput="onRedeem()" />
+        <button class="btn-max" onclick="redeemMax()">MAX</button>
+      </div>
+      <div class="err-msg" id="redeemErr"></div>
+
+      <div class="overview" id="redeemOv" style="display:none">
+        <div class="ov-caption">交易明细</div>
+        <div class="ov-row"><span class="k">汇率</span><span class="v">1 DAT = 1 USDC</span></div>
+        <div class="ov-row"><span class="k">预计获得</span><span class="v hl" id="redeemGet">0 USDC</span></div>
+        <div class="ov-row"><span class="k">手续费</span><span class="v">0 USDC</span></div>
+      </div>
+
+      <button class="btn-primary" id="redeemBtn" disabled>请输入数量</button>
+    </div>
+
+    <!-- 说明卡 -->
+    <div class="card">
+      <div class="card-title">赎回说明</div>
+      <div class="info-row"><span class="info-ic">①</span><div><b>赎回到账户余额</b><p>赎回的 USDC 计入你的账户余额，可继续购买、质押或提现。</p></div></div>
+      <div class="info-row"><span class="info-ic">②</span><div><b>提现到外部钱包</b><p>如需将资产转出到其他地址，请在右上角钱包菜单使用「提现 Withdraw」。</p></div></div>
+      <div class="info-row"><span class="info-ic">③</span><div><b>1:1 即时兑付</b><p>1 DAT 始终可赎回 1 USDC，无滑点、无手续费。</p></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ Transfer 转账页 ============ -->
+<div class="main page" id="page-transfer" style="display:none">
+  <div class="page-head">
+    <h1>转账 Transfer</h1>
+    <p>将 DAT 或 USDC 转账给其他用户，即时到账、无手续费</p>
+  </div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-title">转账</div>
+
+      <!-- 币种切换 -->
+      <div class="stake-tabs">
+        <button class="stab active" id="tfTabDAT" onclick="tfToken('DAT')">DAT</button>
+        <button class="stab" id="tfTabUSDC" onclick="tfToken('USDC')">USDC</button>
+      </div>
+
+      <div class="label">接收地址</div>
+      <div class="input-wrap" style="padding:13px 16px">
+        <input class="input-amt" id="tfAddr" placeholder="0x..." style="text-align:left;font-size:15px" oninput="onTransfer()" />
+      </div>
+      <div class="err-msg" id="tfAddrErr"></div>
+
+      <div class="label" style="margin-top:16px" id="tfAvailLbl">可转 734 DAT</div>
+      <div class="input-wrap" id="tfWrap">
+        <div class="token-chip"><span class="ticon" id="tfIcon" style="background:#3b82f6">◆</span> <span id="tfSym">DAT</span></div>
+        <input class="input-amt" id="tfAmt" placeholder="0" oninput="onTransfer()" />
+        <button class="btn-max" onclick="tfMax()">MAX</button>
+      </div>
+      <div class="err-msg" id="tfAmtErr"></div>
+
+      <button class="btn-primary" id="tfBtn" disabled>请填写转账信息</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">转账说明</div>
+      <div class="info-row"><span class="info-ic">①</span><div><b>仅限系统内地址</b><p>转账只能发送给同样在 DAT 系统内的账户地址，即时到账。</p></div></div>
+      <div class="info-row"><span class="info-ic">②</span><div><b>核对接收地址</b><p>请仔细核对接收地址，转账一经确认无法撤回。</p></div></div>
+      <div class="info-row"><span class="info-ic">③</span><div><b>无手续费</b><p>系统内转账不收取任何手续费，仅需支付少量 Gas（USDC 计价）。</p></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 提现 Withdraw 页 ============ -->
+<div class="main page" id="page-withdraw" style="display:none">
+  <div class="page-head">
+    <h1>提现 Withdraw</h1>
+    <p>将 USDC 提取至外部钱包地址，资产将真实转出系统</p>
+  </div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-title">提现</div>
+
+      <!-- 币种切换 -->
+      <div class="stake-tabs">
+        <button class="stab active" id="wdTabUSDC" onclick="wdToken('USDC')">USDC</button>
+        <button class="stab" id="wdTabDAT" onclick="wdToken('DAT')">DAT</button>
+      </div>
+
+      <div class="label">提现地址（外部钱包）</div>
+      <div class="input-wrap" style="padding:13px 16px">
+        <input class="input-amt" id="wdAddr" placeholder="0x..." style="text-align:left;font-size:15px" oninput="onWithdraw()" />
+      </div>
+      <div class="err-msg" id="wdAddrErr"></div>
+
+      <div class="label" style="margin-top:16px" id="wdAvailLbl">可提现 1,234 USDC</div>
+      <div class="input-wrap" id="wdWrap">
+        <div class="token-chip"><span class="ticon" id="wdIcon">$</span> <span id="wdSym">USDC</span></div>
+        <input class="input-amt" id="wdAmt" placeholder="0" oninput="onWithdraw()" />
+        <button class="btn-max" onclick="wdMax()">MAX</button>
+      </div>
+      <div class="err-msg" id="wdAmtErr"></div>
+
+      <button class="btn-primary" id="wdBtn" disabled>请填写提现信息</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">提现说明</div>
+      <div class="info-row warn"><span class="info-ic" style="color:var(--warning)">!</span><div><b>资产真实转出</b><p>提现会将资产真实转出至你指定的外部地址，请务必核对地址正确，转出后无法撤回。</p></div></div>
+      <div class="info-row"><span class="info-ic">①</span><div><b>支持 USDC / DAT 提现</b><p>可直接提现 USDC，或将 DAT 提取至外部地址（用于跨链等场景）。</p></div></div>
+      <div class="info-row"><span class="info-ic">②</span><div><b>到账时间</b><p>提现将在链上确认后到账，通常数分钟内完成。</p></div></div>
     </div>
 
   </div>
@@ -367,6 +510,106 @@
     document.getElementById('stakeInput').value = stakeMode==='stake'?UNSTAKED:STAKED;
     onStake();
   }
+
+  // ===== 赎回交互 =====
+  var REDEEMABLE = 734; // 可赎回 DAT
+  function onRedeem(){
+    var input=document.getElementById('redeemInput');
+    var wrap=document.getElementById('redeemWrap');
+    var err=document.getElementById('redeemErr');
+    var ov=document.getElementById('redeemOv');
+    var btn=document.getElementById('redeemBtn');
+    var v=parseFloat(input.value);
+    if(!input.value || isNaN(v) || v<=0){
+      wrap.classList.remove('error'); err.classList.remove('show');
+      ov.style.display='none';
+      btn.disabled=true; btn.textContent='请输入数量';
+      return;
+    }
+    ov.style.display='flex';
+    document.getElementById('redeemGet').textContent=v.toLocaleString()+' USDC';
+    if(v>REDEEMABLE){
+      wrap.classList.add('error');
+      err.textContent='超过可赎回数量（最多 '+REDEEMABLE+' DAT）';
+      err.classList.add('show');
+      btn.disabled=true; btn.textContent='超过可赎回数量';
+      return;
+    }
+    wrap.classList.remove('error'); err.classList.remove('show');
+    btn.disabled=false; btn.textContent='确认赎回';
+  }
+  function redeemMax(){
+    document.getElementById('redeemInput').value=REDEEMABLE;
+    onRedeem();
+  }
+
+  // ===== Transfer 交互 =====
+  var tfTok='DAT';
+  var TF_MAX={DAT:734, USDC:1234};
+  function tfToken(t){
+    tfTok=t;
+    document.getElementById('tfTabDAT').classList.toggle('active',t==='DAT');
+    document.getElementById('tfTabUSDC').classList.toggle('active',t==='USDC');
+    document.getElementById('tfSym').textContent=t;
+    document.getElementById('tfIcon').textContent = t==='DAT'?'◆':'$';
+    document.getElementById('tfIcon').style.background = t==='DAT'?'#3b82f6':'#2775ca';
+    document.getElementById('tfAvailLbl').textContent='可转 '+TF_MAX[t]+' '+t;
+    document.getElementById('tfAmt').value='';
+    onTransfer();
+  }
+  function onTransfer(){
+    var addr=document.getElementById('tfAddr').value.trim();
+    var amt=parseFloat(document.getElementById('tfAmt').value);
+    var wrap=document.getElementById('tfWrap');
+    var aerr=document.getElementById('tfAmtErr');
+    var derr=document.getElementById('tfAddrErr');
+    var btn=document.getElementById('tfBtn');
+    var max=TF_MAX[tfTok];
+    var addrOk = addr.length>0;
+    var addrValid = /^0x[a-fA-F0-9]{40}$/.test(addr);
+    // 地址校验
+    if(addrOk && !addrValid){ derr.textContent='地址格式不正确（应为 0x 开头的 42 位地址）'; derr.classList.add('show'); }
+    else { derr.classList.remove('show'); }
+    // 金额校验
+    if(!isNaN(amt) && amt>max){ wrap.classList.add('error'); aerr.textContent='超过可转数量（最多 '+max+' '+tfTok+'）'; aerr.classList.add('show'); }
+    else { wrap.classList.remove('error'); aerr.classList.remove('show'); }
+
+    if(addrValid && !isNaN(amt) && amt>0 && amt<=max){ btn.disabled=false; btn.textContent='确认转账'; }
+    else { btn.disabled=true; btn.textContent='请填写转账信息'; }
+  }
+  function tfMax(){ document.getElementById('tfAmt').value=TF_MAX[tfTok]; onTransfer(); }
+
+  // ===== Withdraw 交互 =====
+  var wdTok='USDC';
+  var WD_MAX={USDC:1234, DAT:734};
+  function wdToken(t){
+    wdTok=t;
+    document.getElementById('wdTabUSDC').classList.toggle('active',t==='USDC');
+    document.getElementById('wdTabDAT').classList.toggle('active',t==='DAT');
+    document.getElementById('wdSym').textContent=t;
+    document.getElementById('wdIcon').textContent = t==='USDC'?'$':'◆';
+    document.getElementById('wdIcon').style.background = t==='USDC'?'#2775ca':'#3b82f6';
+    document.getElementById('wdAvailLbl').textContent='可提现 '+WD_MAX[t].toLocaleString()+' '+t;
+    document.getElementById('wdAmt').value='';
+    onWithdraw();
+  }
+  function onWithdraw(){
+    var addr=document.getElementById('wdAddr').value.trim();
+    var amt=parseFloat(document.getElementById('wdAmt').value);
+    var wrap=document.getElementById('wdWrap');
+    var aerr=document.getElementById('wdAmtErr');
+    var derr=document.getElementById('wdAddrErr');
+    var btn=document.getElementById('wdBtn');
+    var max=WD_MAX[wdTok];
+    var addrValid=/^0x[a-fA-F0-9]{40}$/.test(addr);
+    if(addr.length>0 && !addrValid){ derr.textContent='地址格式不正确（应为 0x 开头的 42 位地址）'; derr.classList.add('show'); }
+    else { derr.classList.remove('show'); }
+    if(!isNaN(amt) && amt>max){ wrap.classList.add('error'); aerr.textContent='超过可提现余额（最多 '+max+' '+wdTok+'）'; aerr.classList.add('show'); }
+    else { wrap.classList.remove('error'); aerr.classList.remove('show'); }
+    if(addrValid && !isNaN(amt) && amt>0 && amt<=max){ btn.disabled=false; btn.textContent='确认提现'; }
+    else { btn.disabled=true; btn.textContent='请填写提现信息'; }
+  }
+  function wdMax(){ document.getElementById('wdAmt').value=WD_MAX[wdTok]; onWithdraw(); }
 
   function onAmt(){
     var input=document.getElementById('amtInput');
