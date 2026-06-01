@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAT DApp 原型 v2</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0e17; --bg-card:#121826; --bg-input:#0c111c; --bg-elev:#1a2233;
+    --border:rgba(120,150,200,.12); --border-active:rgba(99,179,237,.45);
+    --primary:#3b82f6; --primary-hover:#2563eb;
+    --text:#e8edf6; --text-dim:#8a96ab; --text-faint:#5b6678;
+    --success:#10b981; --warning:#f59e0b; --gold:#d9a73a;
+    --radius:14px;
+  }
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;min-height:100vh;font-size:14px}
+
+  /* ===== 顶栏 ===== */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:64px;border-bottom:1px solid var(--border);background:rgba(10,14,23,.8);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+  .topbar-left{display:flex;align-items:center;gap:32px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px}
+  .logo-mark{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:800}
+  .nav{display:flex;gap:24px}
+  .nav a{color:var(--text-dim);text-decoration:none;font-weight:500;font-size:14px;padding:4px 0;position:relative}
+  .nav a.active{color:var(--text)}
+  .nav a.active::after{content:"";position:absolute;bottom:-22px;left:0;right:0;height:2px;background:var(--primary)}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .btn-stake{background:linear-gradient(135deg,var(--gold),#e8bd5a);color:#1a1408;border:none;padding:9px 20px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer}
+  .icon-btn{width:38px;height:38px;border-radius:10px;background:var(--bg-elev);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--text-dim);font-size:16px}
+  .bell-dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:2px solid var(--bg-elev)}
+  .wallet-wrap{position:relative}
+  .wallet{display:flex;align-items:center;gap:8px;background:var(--bg-elev);border:1px solid var(--border);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;user-select:none}
+  .wallet .dot{width:8px;height:8px;border-radius:50%;background:var(--success)}
+  .wallet-menu{position:absolute;top:48px;right:0;width:240px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:8px;box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:70;display:none}
+  .wallet-menu.open{display:block}
+  .wm-head{padding:10px 12px;border-bottom:1px solid var(--border);margin-bottom:6px}
+  .wm-head .addr{font-weight:700;font-size:14px}
+  .wm-head .net{font-size:11px;color:var(--text-dim);margin-top:3px;display:flex;align-items:center;gap:5px}
+  .wm-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text)}
+  .wm-item:hover{background:var(--bg-elev)}
+  .wm-item .ic{width:20px;text-align:center;font-size:15px;color:var(--text-dim)}
+  .wm-item.danger{color:#f87171}
+  .wm-sep{height:1px;background:var(--border);margin:6px 0}
+
+  /* ===== 主体 ===== */
+  .main{max-width:1080px;margin:0 auto;padding:48px 32px 60px}
+  .page-head{margin-bottom:28px}
+  .page-head h1{font-size:24px;font-weight:800;margin-bottom:6px}
+  .page-head p{color:var(--text-dim);font-size:14px}
+  .grid{display:grid;grid-template-columns:1.15fr 1fr;gap:24px;align-items:start}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
+  .card-title{font-size:16px;font-weight:700;margin-bottom:18px}
+  .hold-strip{display:flex;gap:12px;margin-bottom:20px}
+  .hold-item{flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:11px;padding:12px 14px;display:flex;flex-direction:column;gap:5px}
+  .hold-item .hk{font-size:11.5px;color:var(--text-dim)}
+  .hold-item .hv{font-size:16px;font-weight:700}
+
+  /* 输入框 */
+  .label{font-size:12px;color:var(--text-dim);margin-bottom:8px;font-weight:500}
+  .input-wrap{display:flex;align-items:center;background:var(--bg-input);border:1.5px solid var(--border-active);border-radius:12px;padding:14px 16px;gap:12px}
+  .token-chip{display:flex;align-items:center;gap:8px;background:var(--bg-elev);padding:8px 12px;border-radius:9px;font-weight:700;white-space:nowrap}
+  .token-chip .ticon{width:22px;height:22px;border-radius:50%;background:#2775ca;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:800}
+  .input-amt{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:26px;font-weight:700;text-align:right;width:100%}
+  .btn-max{background:rgba(59,130,246,.15);color:#60a5fa;border:none;padding:6px 11px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer}
+  .sub-usd{text-align:right;color:var(--text-faint);font-size:13px;margin-top:8px}
+  .input-wrap.error{border-color:#ef4444}
+  .err-msg{color:#f87171;font-size:12.5px;margin-top:8px;display:none}
+  .err-msg.show{display:block}
+
+  /* 额度规则浮层 */
+  .rule-pop{position:absolute;left:26px;right:26px;background:var(--bg-elev);border:1px solid var(--border-active);border-radius:12px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,.55);z-index:40;margin-top:8px}
+  .rule-pop-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:12px}
+  .rule-pop-head .x{color:var(--text-faint);cursor:pointer}
+  .rule-pop p{font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px}
+  .rule-pop ul{margin:0 0 10px 18px;padding:0}
+  .rule-pop li{font-size:13px;color:var(--text-dim);line-height:1.7}
+  .rule-pop .rule-note{background:rgba(59,130,246,.1);border-radius:8px;padding:10px 12px;color:#9ec5f5;font-size:12.5px;margin-bottom:0}
+  .card{position:relative}
+
+  /* 今日可购 强调块 */
+  .quota{margin-top:18px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(96,165,250,.06));border:1px solid rgba(99,179,237,.25);border-radius:12px;padding:14px 16px}
+  .quota-left{display:flex;align-items:center;gap:8px}
+  .quota-label{font-size:13px;color:var(--text-dim);font-weight:500}
+  .quota-val{font-size:22px;font-weight:800;color:#7cb3f5}
+  .quota-val small{font-size:12px;font-weight:600;color:var(--text-dim)}
+
+  /* overview */
+  .overview{margin-top:18px;border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:11px}
+  .ov-caption{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:3px}
+  .ov-row{display:flex;align-items:center;justify-content:space-between;font-size:13.5px}
+  .ov-row .k{color:var(--text-dim)}
+  .ov-row .v{font-weight:600}
+  .ov-row .v.hl{color:var(--success)}
+  .rule-link{color:#60a5fa;font-size:12px;text-decoration:none;cursor:pointer}
+
+  .btn-primary{width:100%;margin-top:20px;background:var(--primary);color:#fff;border:none;padding:15px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer}
+  .btn-primary:hover{background:var(--primary-hover)}
+
+  /* 余额卡 */
+  .bal-top{display:flex;align-items:baseline;gap:10px}
+  .bal-amt{font-size:28px;font-weight:800}
+  .bal-usd{color:var(--text-faint);font-size:14px}
+  .bal-divider{height:1px;background:var(--border);margin:18px 0}
+  .stat-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:13.5px}
+  .stat-row .k{color:var(--text-dim)}
+  .stat-row .v{font-weight:600}
+  .stat-row .v.apy{color:var(--success)}
+  .bal-actions{display:flex;gap:12px;margin-top:18px}
+  .btn-ghost{flex:1;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);padding:13px;border-radius:11px;font-weight:600;font-size:14px;cursor:pointer}
+  .btn-ghost.stake{background:rgba(217,167,58,.12);border-color:rgba(217,167,58,.3);color:var(--gold)}
+
+  /* Claim 面板 */
+  .claim-pop{position:fixed;top:60px;right:120px;width:300px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:60}
+  .claim-pop h4{font-size:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+  .claim-pop .x{color:var(--text-faint);cursor:pointer;font-size:16px}
+  .claim-box{background:var(--bg-input);border:1px solid var(--border);border-radius:11px;padding:16px;text-align:center;margin-bottom:12px}
+  .claim-box .amt{font-size:24px;font-weight:800;color:var(--success);display:flex;align-items:center;justify-content:center;gap:8px}
+  .claim-box .lbl{font-size:12px;color:var(--text-dim);margin-top:4px}
+  .claim-btn{width:100%;background:var(--success);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px}
+  .claim-hist{text-align:center;margin-top:12px}
+  .claim-hist a{color:var(--text-dim);font-size:12px;text-decoration:none}
+
+  .hint{text-align:center;color:var(--text-faint);font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo"><span class="logo-mark">D</span> DAT</div>
+    <nav class="nav">
+      <a href="#" class="active">购买</a>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-stake">质押</button>
+    <div class="icon-btn" onclick="toggleClaim()">🔔<span class="bell-dot"></span></div>
+    <div class="wallet-wrap">
+      <div class="wallet" onclick="toggleWallet()"><span class="dot"></span> 0x4d…c06b ▾</div>
+      <div class="wallet-menu" id="walletMenu">
+        <div class="wm-head">
+          <div class="addr">0x4d2f…c06b</div>
+          <div class="net"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block"></span> Ethereum Mainnet</div>
+        </div>
+        <div class="wm-item"><span class="ic">⇄</span> Transfer 转账</div>
+        <div class="wm-item"><span class="ic">↗</span> 提现 Withdraw</div>
+        <div class="wm-sep"></div>
+        <div class="wm-item"><span class="ic">⧉</span> 复制地址</div>
+        <div class="wm-item danger"><span class="ic">⏏</span> 断开连接</div>
+      </div>
+    </div>
+    <div class="icon-btn">⚙</div>
+  </div>
+</div>
+
+<!-- 主体 -->
+<div class="main">
+  <div class="page-head">
+    <h1>购买 DAT</h1>
+    <p>存入 USDC，按 1:1 即时获得 DAT，质押可赚取 USDC 收益</p>
+  </div>
+  <div class="grid">
+
+  <!-- 购买卡 -->
+  <div class="card">
+    <div class="card-title">购买 DAT</div>
+
+    <div class="hold-strip">
+      <div class="hold-item"><span class="hk">当前持有</span><span class="hv">1,234.00 DAT</span></div>
+      <div class="hold-item"><span class="hk">钱包 USDC</span><span class="hv">850.00 USDC</span></div>
+    </div>
+
+    <div class="label">支付数量</div>
+    <div class="input-wrap" id="inputWrap">
+      <div class="token-chip"><span class="ticon">$</span> USDC</div>
+      <input class="input-amt" id="amtInput" placeholder="0" oninput="onAmt()" />
+      <button class="btn-max" onclick="setMax()">MAX</button>
+    </div>
+    <div class="sub-usd" id="subUsd">钱包余额 850 USDC</div>
+    <div class="err-msg" id="errMsg"></div>
+
+    <!-- 今日可购：强调块 -->
+    <div class="quota">
+      <div class="quota-left">
+        <span class="quota-label">今日可购</span>
+        <a class="rule-link" onclick="toggleRule()">ⓘ 额度规则</a>
+      </div>
+      <span class="quota-val">20 <small>DAT</small></span>
+    </div>
+
+    <div class="overview" id="overview" style="display:none">
+      <div class="ov-caption">交易明细</div>
+      <div class="ov-row"><span class="k">汇率</span><span class="v">1 USDC = 1 DAT</span></div>
+      <div class="ov-row"><span class="k">预计获得</span><span class="v hl" id="ovGet">0 DAT</span></div>
+      <div class="ov-row"><span class="k">手续费</span><span class="v">0 USDC</span></div>
+    </div>
+
+    <button class="btn-primary" id="buyBtn" disabled>请输入数量</button>
+
+    <!-- 额度规则浮层 -->
+    <div class="rule-pop" id="rulePop" style="display:none">
+      <div class="rule-pop-head">额度规则 <span class="x" onclick="toggleRule()">✕</span></div>
+      <p>「今日可购」是你当前可购买的 DAT 上限，由系统综合计算：</p>
+      <ul>
+        <li>新用户首次可享更高额度</li>
+        <li>每日 0 点刷新当日额度</li>
+        <li>额度用尽后当日无法继续购买，次日恢复</li>
+      </ul>
+      <p class="rule-note">无论额度来自哪种渠道，购买体验一致：支付 USDC，即时获得等量 DAT。</p>
+    </div>
+  </div>
+
+  <!-- 余额资产卡 -->
+  <div class="card">
+    <div class="card-title">我的 DAT 余额</div>
+    <div class="bal-top">
+      <span class="bal-amt">1,234.00</span><span class="bal-usd">DAT ≈ 1,234 USDC</span>
+    </div>
+    <div class="bal-divider"></div>
+    <div class="stat-row"><span class="k">当前年化 APY</span><span class="v apy">3.60%</span></div>
+    <div class="stat-row"><span class="k">已质押</span><span class="v">500 DAT</span></div>
+    <div class="stat-row"><span class="k">累计收益</span><span class="v">42.50 USDC</span></div>
+    <div class="bal-actions">
+      <button class="btn-ghost stake">质押</button>
+      <button class="btn-ghost">赎回</button>
+    </div>
+    <div class="hint" style="text-align:left;margin-top:14px">💡 质押收益可在右上角 🔔 领取</div>
+  </div>
+
+  </div>
+</div>
+
+<!-- Claim 面板 -->
+<div class="claim-pop" id="claimPop" style="display:none">
+  <h4>可领取收益 <span class="x" onclick="toggleClaim()">✕</span></h4>
+  <div class="claim-box">
+    <div class="amt"><span class="ticon" style="width:20px;height:20px;border-radius:50%;background:#2775ca;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:800">$</span> 42.50 USDC</div>
+    <div class="lbl">可领取</div>
+  </div>
+  <button class="claim-btn">一键领取</button>
+  <div class="claim-hist"><a href="#">历史记录 →</a></div>
+</div>
+
+<script>
+  // 模拟数据
+  var QUOTA = 20;      // 今日可购 DAT
+  var BALANCE = 850;   // 钱包 USDC 余额
+
+  function onAmt(){
+    var input=document.getElementById('amtInput');
+    var wrap=document.getElementById('inputWrap');
+    var sub=document.getElementById('subUsd');
+    var err=document.getElementById('errMsg');
+    var ov=document.getElementById('overview');
+    var ovGet=document.getElementById('ovGet');
+    var btn=document.getElementById('buyBtn');
+    var v=parseFloat(input.value);
+
+    // 无输入
+    if(!input.value || isNaN(v) || v<=0){
+      wrap.classList.remove('error'); err.classList.remove('show');
+      sub.textContent='钱包余额 '+BALANCE+' USDC';
+      ov.style.display='none';
+      btn.disabled=true; btn.textContent='请输入数量';
+      return;
+    }
+
+    sub.textContent='≈ $'+v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    ov.style.display='flex';
+    ovGet.textContent=v.toLocaleString()+' DAT';
+
+    // 超过今日可购
+    if(v>QUOTA){
+      wrap.classList.add('error');
+      err.textContent='超过今日可购额度（最多 '+QUOTA+' DAT），明日额度将恢复';
+      err.classList.add('show');
+      btn.disabled=true; btn.textContent='超过今日可购额度';
+      return;
+    }
+    // 超过钱包余额
+    if(v>BALANCE){
+      wrap.classList.add('error');
+      err.textContent='USDC 余额不足，当前余额 '+BALANCE+' USDC';
+      err.classList.add('show');
+      btn.disabled=true; btn.textContent='余额不足';
+      return;
+    }
+    // 正常
+    wrap.classList.remove('error'); err.classList.remove('show');
+    btn.disabled=false; btn.textContent='立即购买';
+  }
+  function setMax(){
+    document.getElementById('amtInput').value=Math.min(QUOTA,BALANCE);
+    onAmt();
+  }
+  function toggleRule(){
+    var p=document.getElementById('rulePop');
+    p.style.display=(p.style.display==='none')?'block':'none';
+  }
+  function toggleWallet(){
+    var m=document.getElementById('walletMenu');
+    m.classList.toggle('open');
+    document.getElementById('claimPop').style.display='none';
+  }
+  function toggleClaim(){
+    var p=document.getElementById('claimPop');
+    p.style.display = (p.style.display==='none')?'block':'none';
+    document.getElementById('walletMenu').classList.remove('open');
+  }
+  // 点击空白处关闭
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.wallet-wrap')) document.getElementById('walletMenu').classList.remove('open');
+    if(!e.target.closest('.claim-pop') && !e.target.closest('.icon-btn')) document.getElementById('claimPop').style.display='none';
+  });
+</script>
+
+</body>
+</html>
