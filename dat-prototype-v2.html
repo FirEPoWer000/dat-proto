@@ -111,6 +111,29 @@
   .btn-ghost.stake{background:rgba(217,167,58,.12);border-color:rgba(217,167,58,.3);color:var(--gold)}
 
   /* Claim 面板 */
+  /* Deposit 充值弹窗 */
+  .dep-mask{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:90}
+  .dep-mask.open{display:flex}
+  .dep-modal{width:480px;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+  .dep-head{display:flex;align-items:center;justify-content:center;position:relative;padding:20px;font-size:17px;font-weight:700;border-bottom:1px solid var(--border)}
+  .dep-head .x{position:absolute;right:20px;color:var(--text-faint);cursor:pointer;font-size:18px}
+  .dep-body{padding:24px}
+  .dep-row{display:flex;gap:16px;margin-bottom:20px}
+  .dep-fld{flex:1}
+  .dep-fld label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:9px}
+  .dep-select{display:flex;align-items:center;justify-content:space-between;background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer}
+  .dep-coin{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+  .dep-cic{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+  .dep-arrow{color:var(--text-faint)}
+  .dep-more{color:var(--text-dim);font-size:13px;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:18px;cursor:pointer}
+  .dep-confirm-t{color:#60a5fa;font-weight:700;font-size:15px;margin-bottom:14px}
+  .dep-warn{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:16px;color:#f5a3a0;font-size:13px;line-height:1.6;margin-bottom:16px}
+  .dep-check{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--text);cursor:pointer;margin-bottom:20px}
+  .dep-check input{width:18px;height:18px}
+  .dep-btn{width:100%;background:var(--bg-elev);color:var(--text-faint);border:1px solid var(--border);padding:15px;border-radius:12px;font-weight:700;font-size:15px;cursor:not-allowed}
+  .dep-btn.ready{background:var(--primary);color:#fff;cursor:pointer}
+  .dep-note{text-align:center;color:var(--text-faint);font-size:12px;margin-top:14px;line-height:1.5}
+
   .claim-pop{position:fixed;top:60px;right:120px;width:300px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:60}
   .claim-pop h4{font-size:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
   .claim-pop .x{color:var(--text-faint);cursor:pointer;font-size:16px}
@@ -158,6 +181,7 @@
           <div class="addr">0x4d2f…c06b</div>
           <div class="net"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block"></span> Ethereum Mainnet</div>
         </div>
+        <div class="wm-item" onclick="openDeposit()"><span class="ic">↓</span> 充值 Deposit</div>
         <div class="wm-item" onclick="go('transfer')"><span class="ic">⇄</span> Transfer 转账</div>
         <div class="wm-item" onclick="go('withdraw')"><span class="ic">↗</span> 提现 Withdraw</div>
         <div class="wm-sep"></div>
@@ -390,20 +414,33 @@
 <div class="main page" id="page-withdraw" style="display:none">
   <div class="page-head">
     <h1>提现 Withdraw</h1>
-    <p>将 USDC 提取至外部钱包地址，资产将真实转出系统</p>
+    <p>将 USDC / DAT 提取至外部地址，支持多链多币种到账，资产真实转出系统</p>
   </div>
   <div class="grid">
 
     <div class="card">
       <div class="card-title">提现</div>
 
-      <!-- 币种切换 -->
+      <!-- 提现资产切换 -->
+      <div class="label">提现资产</div>
       <div class="stake-tabs">
         <button class="stab active" id="wdTabUSDC" onclick="wdToken('USDC')">USDC</button>
         <button class="stab" id="wdTabDAT" onclick="wdToken('DAT')">DAT</button>
       </div>
 
-      <div class="label">提现地址（外部钱包）</div>
+      <!-- 目标链 + 目标币种（多链多币种提取） -->
+      <div style="display:flex;gap:12px;margin-top:16px">
+        <div style="flex:1">
+          <div class="label">目标网络</div>
+          <div class="dep-select"><span class="dep-coin"><span class="dep-cic" style="background:#627eea;width:22px;height:22px;font-size:11px">◆</span> Ethereum</span> <span class="dep-arrow">▾</span></div>
+        </div>
+        <div style="flex:1">
+          <div class="label">到账币种</div>
+          <div class="dep-select"><span class="dep-coin"><span class="dep-cic" style="background:#2775ca;width:22px;height:22px;font-size:11px">$</span> USDC</span> <span class="dep-arrow">▾</span></div>
+        </div>
+      </div>
+
+      <div class="label" style="margin-top:16px">提现地址（外部钱包）</div>
       <div class="input-wrap" style="padding:13px 16px">
         <input class="input-amt" id="wdAddr" placeholder="0x..." style="text-align:left;font-size:15px" oninput="onWithdraw()" />
       </div>
@@ -423,8 +460,8 @@
     <div class="card">
       <div class="card-title">提现说明</div>
       <div class="info-row warn"><span class="info-ic" style="color:var(--warning)">!</span><div><b>资产真实转出</b><p>提现会将资产真实转出至你指定的外部地址，请务必核对地址正确，转出后无法撤回。</p></div></div>
-      <div class="info-row"><span class="info-ic">①</span><div><b>支持 USDC / DAT 提现</b><p>可直接提现 USDC，或将 DAT 提取至外部地址（用于跨链等场景）。</p></div></div>
-      <div class="info-row"><span class="info-ic">②</span><div><b>到账时间</b><p>提现将在链上确认后到账，通常数分钟内完成。</p></div></div>
+      <div class="info-row"><span class="info-ic">①</span><div><b>多链多币种提取</b><p>可将 USDC / DAT 提取到多个网络、兑付成其他币种到账（由三方服务商兑付，实际支持范围以服务商为准）。</p></div></div>
+      <div class="info-row"><span class="info-ic">②</span><div><b>到账时间</b><p>提现将在链上确认后到账，跨链/兑换可能需要数分钟。</p></div></div>
     </div>
 
   </div>
@@ -441,7 +478,38 @@
   <div class="claim-hist"><a href="#">历史记录 →</a></div>
 </div>
 
+<!-- ============ Deposit 充值弹窗 ============ -->
+<div class="dep-mask" id="depMask" onclick="if(event.target===this)closeDeposit()">
+  <div class="dep-modal">
+    <div class="dep-head">充值 USDC <span class="x" onclick="closeDeposit()">✕</span></div>
+    <div class="dep-body">
+      <div class="dep-row">
+        <div class="dep-fld">
+          <label>来源网络</label>
+          <div class="dep-select"><span class="dep-coin"><span class="dep-cic" style="background:#627eea">◆</span> Ethereum</span> <span class="dep-arrow">▾</span></div>
+        </div>
+        <div class="dep-fld">
+          <label>充值代币</label>
+          <div class="dep-select"><span class="dep-coin"><span class="dep-cic" style="background:#627eea">◆</span> ETH</span> <span class="dep-arrow">▾</span></div>
+        </div>
+      </div>
+      <div class="dep-more">更多参数详情 <span style="float:right">▾</span></div>
+      <div class="dep-confirm">
+        <div class="dep-confirm-t">确认充值信息</div>
+        <div class="dep-warn">⚠️ 请务必复制并使用本页展示的充值地址；向错误网络或错误币种转账可能导致资金永久损失。</div>
+        <label class="dep-check"><input type="checkbox" id="depAgree" onchange="depToggle()"> 我已了解上述风险并确认继续。</label>
+      </div>
+      <button class="dep-btn" id="depBtn" disabled>确定</button>
+      <div class="dep-note">充值后由三方服务商兑付成 USDC，存入你的 AA 钱包地址（Mint 时才入储备池）</div>
+    </div>
+  </div>
+</div>
+
 <script>
+  // 全局精度：金额展示小数点后2位，硬截取（不四舍五入）
+  function trunc2(n){ n=parseFloat(n)||0; return (Math.trunc(n*100)/100).toFixed(2); }
+  function fmt2(n){ return Number(trunc2(n)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
   // 模拟数据
   var QUOTA = 20;      // 今日可购 DAT
   var BALANCE = 850;   // 钱包 USDC 余额
@@ -499,8 +567,8 @@
     wrap.classList.remove('error'); err.classList.remove('show');
     if(stakeMode==='stake'){
       ov.style.display='flex';
-      document.getElementById('stakeDaily').textContent='~'+(v*APY/365).toFixed(2)+' USDC';
-      document.getElementById('stakeYearly').textContent='~'+(v*APY).toFixed(2)+' USDC';
+      document.getElementById('stakeDaily').textContent='~'+trunc2(v*APY/365)+' USDC';
+      document.getElementById('stakeYearly').textContent='~'+trunc2(v*APY)+' USDC';
     }else{
       ov.style.display='none';
     }
@@ -527,7 +595,7 @@
       return;
     }
     ov.style.display='flex';
-    document.getElementById('redeemGet').textContent=v.toLocaleString()+' USDC';
+    document.getElementById('redeemGet').textContent=fmt2(v)+' USDC';
     if(v>REDEEMABLE){
       wrap.classList.add('error');
       err.textContent='超过可赎回数量（最多 '+REDEEMABLE+' DAT）';
@@ -630,7 +698,7 @@
       return;
     }
 
-    sub.textContent='≈ $'+v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    sub.textContent='≈ $'+fmt2(v);
     ov.style.display='flex';
     ovGet.textContent=v.toLocaleString()+' DAT';
 
@@ -661,6 +729,16 @@
   function toggleRule(){
     var p=document.getElementById('rulePop');
     p.style.display=(p.style.display==='none')?'block':'none';
+  }
+  function openDeposit(){
+    document.getElementById('depMask').classList.add('open');
+    document.getElementById('walletMenu').classList.remove('open');
+  }
+  function closeDeposit(){ document.getElementById('depMask').classList.remove('open'); }
+  function depToggle(){
+    var btn=document.getElementById('depBtn');
+    if(document.getElementById('depAgree').checked){ btn.classList.add('ready'); btn.disabled=false; }
+    else { btn.classList.remove('ready'); btn.disabled=true; }
   }
   function toggleWallet(){
     var m=document.getElementById('walletMenu');

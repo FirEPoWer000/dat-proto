@@ -119,6 +119,7 @@
     <a class="sub" data-p="work" onclick="nav(this)">工作台</a>
     <a class="sub" data-p="act" onclick="nav(this)">活动管理</a>
     <a class="sub" data-p="role" onclick="nav(this)">角色额度配置</a>
+    <a class="sub" data-p="param" onclick="nav(this)">全局参数配置</a>
     <a class="sub" data-p="div" onclick="nav(this)">分红注入</a>
   </aside>
 
@@ -307,6 +308,35 @@
       </div>
     </div>
 
+    <!-- ===== 全局参数配置 ===== -->
+    <div class="page" id="p-param">
+      <div class="page-h"><div><h1>全局参数配置</h1><p>全局业务参数调整（与角色无关），部分变更需上链生效</p></div></div>
+      <div class="sec-t">额度参数</div>
+      <div class="tbl-box">
+        <table>
+          <thead><tr><th>参数</th><th>当前值</th><th>说明</th><th>生效方式</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>每日池·终身额度</td><td>10 DAT</td><td>每用户终身累计上限，用完永久关闭</td><td><span class="tag run">需上链</span></td><td><span class="op-link">编辑</span></td></tr>
+            <tr><td>回流池·每日额度</td><td>10 DAT</td><td>每用户每日上限，次日重置</td><td><span class="tag run">需上链</span></td><td><span class="op-link">编辑</span></td></tr>
+            <tr><td>每日发行量</td><td>约 14,384 DAT/天</td><td>首年每日释放量</td><td><span class="tag run">需上链</span></td><td><span class="op-link">编辑</span></td></tr>
+            <tr><td>减半节奏</td><td>每年减半</td><td>年度发行减半规则，合约写死、根基性参数不可调</td><td><span class="tag gray">固定</span></td><td><span class="op-link" style="color:var(--faint)">—</span></td></tr>
+            <tr><td>兑换比例</td><td>1 USDC = 1 DAT</td><td>刚性兑付，固定不可改</td><td><span class="tag gray">固定</span></td><td><span class="op-link" style="color:var(--faint)">—</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sec-t">展示与精度</div>
+      <div class="tbl-box">
+        <table>
+          <thead><tr><th>参数</th><th>当前值</th><th>说明</th><th>生效方式</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>金额展示精度</td><td>小数点后 2 位（硬截取）</td><td>USDC/收益等金额展示规则，不四舍五入</td><td><span class="tag hold">链下</span></td><td><span class="op-link">编辑</span></td></tr>
+            <tr><td>DAT 数量精度</td><td>整数</td><td>Mint/Swap 仅接受整数</td><td><span class="tag run">需上链</span></td><td><span class="op-link">编辑</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px;padding:12px 16px;background:#eaf1ff;border-radius:8px;font-size:12.5px;color:#2860d8">ℹ️ 标「需上链」的参数变更会触发合约交易，需多签确认后生效；「链下」参数即时生效。</div>
+    </div>
+
     <!-- ===== 分红注入 ===== -->
     <div class="page" id="p-div">
       <div class="page-h"><div><h1>分红注入</h1><p>向分红池注入 USDC，按质押比例分配给质押用户</p></div><button class="btn pri" onclick="openM('div')">+ 注入分红</button></div>
@@ -371,7 +401,7 @@
   // ---- 弹窗 ----
   var AUTO='<div class="auto-note">ℹ️ 系统将自动生成所需地址、充值 USDC，并分批拟人化执行（随机间隔下单，避免操作痕迹集中）。</div>';
   var FORMS={
-    scan:{title:'发起扫货',ok:'确认发起',body:'<div class="fld"><label>扫货范围</label><select><option>每日池 + 回收池（今日剩余）</option><option>仅每日池</option><option>仅回收池</option></select></div><div class="fld"><label>目标补满数量</label><input value="1200" /><div class="hint">今日剩余额度 1,200 DAT</div></div><div class="fld"><label>资金来源地址</label><select><option>运营指定资金地址 0x88…ee（可用 30.5 万 USDC）</option></select><div class="hint">该地址当前可用 USDC：305,000</div></div>'+AUTO},
+    scan:{title:'发起扫货',ok:'确认发起',body:'<div class="fld"><label>扫货范围</label><select><option>每日池</option><option>回收池</option></select></div><div class="fld"><label>目标补满数量</label><input value="1200" /><div class="hint">今日剩余额度 1,200 DAT</div></div><div class="fld"><label>资金来源地址</label><select><option>运营指定资金地址 0x88…ee（可用 30.5 万 USDC）</option></select><div class="hint">该地址当前可用 USDC：305,000</div></div>'+AUTO},
     mint:{title:'提前 Mint 备货',ok:'确认发起',body:'<div class="fld"><label>Mint 数量</label><input value="100" /><div class="hint">DAT 仅支持整数</div></div><div class="fld"><label>拆分地址数</label><input value="10" /><div class="hint">系统自动生成对应数量地址分散执行</div></div><div class="fld"><label>资金来源地址</label><select><option>运营指定资金地址 0x88…ee（可用 30.5 万 USDC）</option></select><div class="hint">该地址当前可用 USDC：305,000</div></div>'+AUTO},
     otc:{title:'OTC 派发',ok:'确认派发',body:'<div class="fld"><label>来源备货（提前Mint）</label><select><option>#100 · 持有 100 DAT（10 地址）</option></select></div><div class="fld"><label>派发给（中奖用户地址，支持批量）</label><textarea placeholder="多个地址用英文逗号 , 隔开，例如：0xabc...,0xdef...,0x123..." style="min-height:90px;resize:vertical"></textarea><div class="hint">可批量写入多个中奖地址，地址间用英文逗号 , 隔开</div></div><div class="fld"><label>每地址派发数量</label><input value="10" /></div><div class="fld"><label>每地址应收 USDC（用户需支付）</label><input value="10" /><div class="hint">用户 Claim 出现红点，支付 USDC 后 DAT 到账；USDC 进对应备货地址</div></div>'},
     rdm:{title:'发起 Redeem（补充回流池）',ok:'确认发起',body:'<div class="fld"><label>Redeem 数量</label><input value="300" /><div class="hint">从管控地址赎回 DAT，归入回收池库存供用户购买</div></div><div class="fld"><label>来源地址范围</label><select><option>自动选择有余额的管控地址</option></select></div>'+AUTO},
